@@ -150,7 +150,7 @@ function mockExtractTasks(note) {
   console.log(`✅ AI EXTRACT TASKS: Found ${uniqueTasks.length} tasks`)
   
   return {
-    tasks: uniqueTasks.slice(0, 8) // Limit to 8 tasks max
+    tasks: uniqueTasks
   }
 }
 
