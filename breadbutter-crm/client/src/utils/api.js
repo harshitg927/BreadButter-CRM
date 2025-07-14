@@ -68,5 +68,33 @@ export const api = {
       const response = await apiClient.post(`/gigs/${id}/notes`, note);
       return response.data;
     }
+  },
+  ai: {
+    summarize: async (data) => {
+      const response = await apiClient.post('/ai/summarize', data);
+      return response.data;
+    },
+    extractTasks: async (data) => {
+      const response = await apiClient.post('/ai/extract-tasks', data);
+      return response.data;
+    }
+  },
+  integrations: {
+    slack: async (data) => {
+      const response = await apiClient.post('/integrations/slack', data);
+      return response.data;
+    },
+    notion: async (data) => {
+      const response = await apiClient.post('/integrations/notion', data);
+      return response.data;
+    },
+    whatsapp: async (data) => {
+      const response = await apiClient.post('/integrations/whatsapp', data);
+      return response.data;
+    },
+    webhook: async (data) => {
+      const response = await apiClient.post('/integrations/webhook', data);
+      return response.data;
+    }
   }
 }; 
