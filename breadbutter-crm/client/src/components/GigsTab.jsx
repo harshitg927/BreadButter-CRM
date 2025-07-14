@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { api } from '../utils/api'
+import AIFeatures from './AIFeatures'
+import IntegrationsPanel from './IntegrationsPanel'
 
 const GigsTab = () => {
   const [gigs, setGigs] = useState([])
@@ -287,6 +289,26 @@ const GigsTab = () => {
           </div>
         )}
       </div>
+
+      {/* AI Features Section */}
+      <div className="space-y-6">
+        <AIFeatures />
+      </div>
+
+      {/* Integrations Section */}
+      {gigs.length > 0 && (
+        <div className="space-y-6">
+          <IntegrationsPanel 
+            gigData={{
+              id: gigs[0].id,
+              title: gigs[0].title,
+              status: gigs[0].status,
+              clientName: getClientName(gigs[0].clientId),
+              talentName: getTalentName(gigs[0].talentId)
+            }}
+          />
+        </div>
+      )}
 
       {showingNotes && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">

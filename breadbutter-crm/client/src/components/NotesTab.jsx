@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { api } from '../utils/api'
+import TaskExtractor from './TaskExtractor'
 
 const NotesTab = () => {
   const [gigs, setGigs] = useState([])
   const [allNotes, setAllNotes] = useState([])
   const [clients, setClients] = useState([])
   const [talents, setTalents] = useState([])
+  const [noteText, setNoteText] = useState('')
 
   useEffect(() => {
     fetchData()
@@ -112,6 +114,21 @@ const NotesTab = () => {
             </p>
           </div>
         )}
+      </div>
+
+      {/* Task Extraction Section */}
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          🔍 Extract Tasks from Notes
+        </h3>
+        <TaskExtractor 
+          noteText={noteText}
+          onNoteChange={setNoteText}
+          onTasksExtracted={(tasks) => {
+            console.log('Tasks extracted:', tasks)
+            // You can add logic here to save tasks to a specific project
+          }}
+        />
       </div>
 
       {allNotes.length > 0 && (
