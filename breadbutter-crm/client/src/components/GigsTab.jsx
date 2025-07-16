@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { api } from '../utils/api'
 import AIFeatures from './AIFeatures'
 import IntegrationsPanel from './IntegrationsPanel'
@@ -38,7 +39,7 @@ const GigsTab = () => {
       setTalents(talentsData)
     } catch (error) {
       console.error('Error fetching data:', error)
-      alert('Error fetching data')
+      toast.error('Failed to fetch data. Please try again.')
     }
   }
 
@@ -54,8 +55,10 @@ const GigsTab = () => {
       
       if (editingGig) {
         await api.gigs.update(editingGig._id, gigData)
+        toast.success('Project updated successfully!')
       } else {
         await api.gigs.create(gigData)
+        toast.success('Project created successfully!')
       }
       setFormData({ title: '', clientId: '', talentId: '', status: 'In Progress' })
       setIsAddingGig(false)
@@ -63,7 +66,7 @@ const GigsTab = () => {
       fetchData()
     } catch (error) {
       console.error('Error saving gig:', error)
-      alert('Error saving gig')
+      toast.error('Failed to save project. Please try again.')
     }
   }
 
@@ -82,10 +85,11 @@ const GigsTab = () => {
     if (window.confirm('Are you sure you want to delete this gig?')) {
       try {
         await api.gigs.delete(id)
+        toast.success('Project deleted successfully!')
         fetchData()
       } catch (error) {
         console.error('Error deleting gig:', error)
-        alert('Error deleting gig')
+        toast.error('Failed to delete project. Please try again.')
       }
     }
   }
@@ -100,12 +104,13 @@ const GigsTab = () => {
     e.preventDefault()
     try {
       await api.gigs.addNote(showingNotes._id, noteData)
+      toast.success('Note added successfully!')
       setNoteData({ note: '', type: 'text', created_by: '' })
       setShowingNotes(null) // Close the modal after adding note
       fetchData()
     } catch (error) {
       console.error('Error adding note:', error)
-      alert('Error adding note')
+      toast.error('Failed to add note. Please try again.')
     }
   }
 

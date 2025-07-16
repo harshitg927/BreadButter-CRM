@@ -1,4 +1,5 @@
 import { Users, User, Briefcase, FileText, LogOut } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { logout } from '../utils/auth';
 
 const Sidebar = ({ activeTab, setActiveTab, user }) => {
@@ -11,6 +12,7 @@ const Sidebar = ({ activeTab, setActiveTab, user }) => {
 
   const handleLogout = () => {
     logout();
+    toast.success('Logged out successfully!');
     window.location.reload(); // Simple way to reset app state
   }
 

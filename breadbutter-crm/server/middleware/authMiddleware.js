@@ -12,7 +12,7 @@ function authenticateToken(req, res, next) {
   }
   
   // Verify token
-  jwt.verify(token, 'your-secret-key', async (err, decoded) => {
+  jwt.verify(token, 'this_is_a_secret', async (err, decoded) => {
     if (err) {
       return res.status(403).json({ message: 'Invalid token' });
     }

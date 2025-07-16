@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { api } from '../utils/api'
 
 const TalentsTab = () => {
@@ -21,7 +22,7 @@ const TalentsTab = () => {
       setTalents(data)
     } catch (error) {
       console.error('Error fetching talents:', error)
-      alert('Error fetching talents')
+      toast.error('Failed to fetch talents. Please try again.')
     }
   }
 
@@ -35,8 +36,10 @@ const TalentsTab = () => {
       
       if (editingTalent) {
         await api.talents.update(editingTalent._id, talentData)
+        toast.success('Talent updated successfully!')
       } else {
         await api.talents.create(talentData)
+        toast.success('Talent created successfully!')
       }
       setFormData({ name: '', skills: '', city: '' })
       setIsAddingTalent(false)
@@ -44,7 +47,7 @@ const TalentsTab = () => {
       fetchTalents()
     } catch (error) {
       console.error('Error saving talent:', error)
-      alert('Error saving talent')
+      toast.error('Failed to save talent. Please try again.')
     }
   }
 
@@ -62,10 +65,11 @@ const TalentsTab = () => {
     if (window.confirm('Are you sure you want to delete this talent?')) {
       try {
         await api.talents.delete(id)
+        toast.success('Talent deleted successfully!')
         fetchTalents()
       } catch (error) {
         console.error('Error deleting talent:', error)
-        alert('Error deleting talent')
+        toast.error('Failed to delete talent. Please try again.')
       }
     }
   }

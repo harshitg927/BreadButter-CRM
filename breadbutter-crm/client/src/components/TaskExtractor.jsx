@@ -1,30 +1,30 @@
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import { api } from '../utils/api'
 
 const TaskExtractor = ({ noteText, onNoteChange, onTasksExtracted }) => {
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const extractTasks = async () => {
     if (!noteText.trim()) {
-      setError('Please enter some notes first.')
+      toast.warning('Please enter some notes first.')
       return
     }
 
     setLoading(true)
-    setError('')
 
     try {
       const response = await api.ai.extractTasks({ note: noteText })
       setTasks(response.tasks.map(task => ({ text: task, completed: false })))
+      toast.success(`Successfully extracted ${response.tasks.length} tasks!`)
       
       // Call parent callback if provided
       if (onTasksExtracted) {
         onTasksExtracted(response.tasks)
       }
     } catch (error) {
-      setError('Failed to extract tasks. Please try again.')
+      toast.error('Failed to extract tasks. Please try again.')
       console.error('Task extraction error:', error)
     } finally {
       setLoading(false)
@@ -41,13 +41,14 @@ const TaskExtractor = ({ noteText, onNoteChange, onTasksExtracted }) => {
 
   const clearTasks = () => {
     setTasks([])
-    setError('')
+    toast.info('Tasks cleared.')
   }
 
   const addManualTask = () => {
     const taskText = prompt('Enter task:')
     if (taskText && taskText.trim()) {
       setTasks(prevTasks => [...prevTasks, { text: taskText.trim(), completed: false }])
+      toast.success('Task added successfully!')
     }
   }
 
@@ -98,13 +99,6 @@ const TaskExtractor = ({ noteText, onNoteChange, onTasksExtracted }) => {
           </>
         )}
       </div>
-
-      {/* Error Message */}
-      {error && (
-        <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-        </div>
-      )}
 
       {/* Tasks Display */}
       {tasks.length > 0 && (

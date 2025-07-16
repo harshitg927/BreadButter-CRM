@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { api } from '../utils/api'
 
 const ClientsTab = () => {
@@ -21,7 +22,7 @@ const ClientsTab = () => {
       setClients(data)
     } catch (error) {
       console.error('Error fetching clients:', error)
-      alert('Error fetching clients')
+      toast.error('Failed to fetch clients. Please try again.')
     }
   }
 
@@ -30,8 +31,10 @@ const ClientsTab = () => {
     try {
       if (editingClient) {
         await api.clients.update(editingClient._id, formData)
+        toast.success('Client updated successfully!')
       } else {
         await api.clients.create(formData)
+        toast.success('Client created successfully!')
       }
       setFormData({ name: '', contact: '', industry: '' })
       setIsAddingClient(false)
@@ -39,7 +42,7 @@ const ClientsTab = () => {
       fetchClients()
     } catch (error) {
       console.error('Error saving client:', error)
-      alert('Error saving client')
+      toast.error('Failed to save client. Please try again.')
     }
   }
 
@@ -57,10 +60,11 @@ const ClientsTab = () => {
     if (window.confirm('Are you sure you want to delete this client?')) {
       try {
         await api.clients.delete(id)
+        toast.success('Client deleted successfully!')
         fetchClients()
       } catch (error) {
         console.error('Error deleting client:', error)
-        alert('Error deleting client')
+        toast.error('Failed to delete client. Please try again.')
       }
     }
   }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { toast } from 'react-toastify'
 import { api } from '../utils/api'
 import TaskExtractor from './TaskExtractor'
 
@@ -9,7 +10,6 @@ const NotesTab = () => {
   const [talents, setTalents] = useState([])
   const [noteText, setNoteText] = useState('')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -18,7 +18,6 @@ const NotesTab = () => {
   const fetchData = async () => {
     try {
       setLoading(true)
-      setError(null)
       
       const [gigsData, clientsData, talentsData] = await Promise.all([
         api.gigs.getAll(),
@@ -60,9 +59,16 @@ const NotesTab = () => {
     } catch (error) {
       console.error('Error fetching data:', error)
       setError(error.message || 'Error fetching data')
+      toast.error('Failed to load notes. Please try again.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRetry = async () => {
+    toast.info('Refreshing notes...')
+    await fetchData()
+    toast.success('Notes refreshed successfully!')
   }
 
   const getClientName = (clientId) => {
@@ -100,34 +106,22 @@ const NotesTab = () => {
     )
   }
 
-  // Handle error state
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Notes</h2>
-        </div>
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-          <div className="text-center py-12 text-red-500 dark:text-red-400">
-            <p className="text-sm">Error loading notes: {error}</p>
-            <button 
-              onClick={fetchData}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-            >
-              Try Again
-            </button>
-          </div>
-        </div>
-      </div>
-    )
-  }
+
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Notes</h2>
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          {allNotes.length} notes across {gigs.length} projects
+        <div className="flex items-center space-x-4">
+          <button 
+            onClick={handleRetry}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+          >
+            Refresh
+          </button>
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            {allNotes.length} notes across {gigs.length} projects
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import { signup } from '../../utils/auth';
 
 function Signup({ onSignupSuccess }) {
@@ -6,18 +7,17 @@ function Signup({ onSignupSuccess }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
     
     try {
       await signup(username, email, password);
+      toast.success('Account created successfully! Please login.');
       onSignupSuccess();
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -27,12 +27,6 @@ function Signup({ onSignupSuccess }) {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-white">Sign Up</h2>
-        
-        {error && (
-          <div className="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-4">
-            {error}
-          </div>
-        )}
         
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
