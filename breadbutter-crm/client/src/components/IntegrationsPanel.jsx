@@ -85,8 +85,8 @@ const IntegrationsPanel = ({ gigData }) => {
   }
 
   return (
-    <div className="integrations-panel border border-gray-200 rounded-lg p-6 bg-white">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+    <div className="integrations-panel border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
         🚀 Integrations
       </h3>
       
@@ -97,7 +97,7 @@ const IntegrationsPanel = ({ gigData }) => {
           disabled={loadingIntegrations.slack}
           className={`flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
             loadingIntegrations.slack
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-purple-600 text-white hover:bg-purple-700'
           }`}
         >
@@ -110,8 +110,8 @@ const IntegrationsPanel = ({ gigData }) => {
           disabled={loadingIntegrations.notion}
           className={`flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
             loadingIntegrations.notion
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-gray-800 text-white hover:bg-gray-900'
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
+              : 'bg-gray-800 dark:bg-gray-700 text-white hover:bg-gray-900 dark:hover:bg-gray-600'
           }`}
         >
           {loadingIntegrations.notion ? '⏳' : '📝'} 
@@ -123,7 +123,7 @@ const IntegrationsPanel = ({ gigData }) => {
           disabled={loadingIntegrations.whatsapp}
           className={`flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
             loadingIntegrations.whatsapp
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-green-600 text-white hover:bg-green-700'
           }`}
         >
@@ -136,7 +136,7 @@ const IntegrationsPanel = ({ gigData }) => {
           disabled={loadingIntegrations.webhook}
           className={`flex items-center justify-center px-4 py-3 rounded-lg font-medium text-sm transition-colors ${
             loadingIntegrations.webhook
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               : 'bg-orange-600 text-white hover:bg-orange-700'
           }`}
         >
@@ -149,10 +149,10 @@ const IntegrationsPanel = ({ gigData }) => {
       {messages.length > 0 && (
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <h4 className="text-sm font-medium text-gray-700">Integration Status:</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Integration Status:</h4>
             <button
               onClick={clearMessages}
-              className="text-xs text-gray-500 hover:text-gray-700"
+              className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
             >
               Clear All
             </button>
@@ -164,8 +164,8 @@ const IntegrationsPanel = ({ gigData }) => {
                 key={message.id}
                 className={`p-2 rounded-md text-sm ${
                   message.type === 'success'
-                    ? 'bg-green-50 border border-green-200 text-green-800'
-                    : 'bg-red-50 border border-red-200 text-red-800'
+                    ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300'
+                    : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
                 }`}
               >
                 <div className="flex justify-between items-start">
@@ -180,11 +180,11 @@ const IntegrationsPanel = ({ gigData }) => {
 
       {/* Integration Info */}
       {messages.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-md p-4">
-          <p className="text-sm text-gray-600 mb-2">
+        <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-md p-4">
+          <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">
             💡 <strong>Quick Actions:</strong> Connect your project with external tools
           </p>
-          <ul className="text-xs text-gray-500 space-y-1">
+          <ul className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
             <li>• <strong>Slack:</strong> Send notifications to team channels</li>
             <li>• <strong>Notion:</strong> Create project documentation pages</li>
             <li>• <strong>WhatsApp:</strong> Send updates to clients/team</li>
