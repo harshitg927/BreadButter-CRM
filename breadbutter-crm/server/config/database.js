@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 // Simple MongoDB connection
 function connectDB() {
-  mongoose.connect('mongodb://localhost:27017/breadbutter-crm', {
+  mongoose.connect(process.env.MONGO_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true
   });

@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
+const dotenv = require('dotenv');
 const connectDB = require('./config/database');
 const { mockSummarize, mockExtractTasks, mockAIDelay } = require('./mockAI');
 const { mockSlackNotification, mockNotionPage, mockWhatsAppPing, mockWebhook } = require('./mockIntegrations');
+
+// Load environment variables
+dotenv.config();
 
 // Import routes
 const authRoutes = require('./routes/authRoutes');
@@ -12,7 +16,7 @@ const talentRoutes = require('./routes/talentRoutes');
 const gigRoutes = require('./routes/gigRoutes');
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 // Connect to database
 connectDB();
