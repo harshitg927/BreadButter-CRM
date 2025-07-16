@@ -2,6 +2,15 @@ import axios from 'axios';
 
 const API_BASE = 'http://localhost:5000/api';
 
+// Get token from localStorage
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : '',
+  };
+}
+
 // Create axios instance with default config
 const apiClient = axios.create({
   baseURL: API_BASE,
@@ -10,62 +19,81 @@ const apiClient = axios.create({
   }
 });
 
+// Create axios instance for authenticated requests
+const authenticatedApiClient = axios.create({
+  baseURL: API_BASE,
+});
+
+// Add token to authenticated requests
+authenticatedApiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 export const api = {
   clients: {
     getAll: async () => {
-      const response = await apiClient.get('/clients');
+      const response = await authenticatedApiClient.get('/clients');
       return response.data;
     },
     create: async (data) => {
-      const response = await apiClient.post('/clients', data);
+      const response = await authenticatedApiClient.post('/clients', data);
       return response.data;
     },
     update: async (id, data) => {
-      const response = await apiClient.put(`/clients/${id}`, data);
+      const response = await authenticatedApiClient.put(`/clients/${id}`, data);
       return response.data;
     },
     delete: async (id) => {
-      const response = await apiClient.delete(`/clients/${id}`);
+      const response = await authenticatedApiClient.delete(`/clients/${id}`);
       return response.data;
     }
   },
   talents: {
     getAll: async () => {
-      const response = await apiClient.get('/talents');
+      const response = await authenticatedApiClient.get('/talents');
       return response.data;
     },
     create: async (data) => {
-      const response = await apiClient.post('/talents', data);
+      const response = await authenticatedApiClient.post('/talents', data);
       return response.data;
     },
     update: async (id, data) => {
-      const response = await apiClient.put(`/talents/${id}`, data);
+      const response = await authenticatedApiClient.put(`/talents/${id}`, data);
       return response.data;
     },
     delete: async (id) => {
-      const response = await apiClient.delete(`/talents/${id}`);
+      const response = await authenticatedApiClient.delete(`/talents/${id}`);
       return response.data;
     }
   },
   gigs: {
     getAll: async () => {
-      const response = await apiClient.get('/gigs');
+      const response = await authenticatedApiClient.get('/gigs');
       return response.data;
     },
     create: async (data) => {
-      const response = await apiClient.post('/gigs', data);
+      const response = await authenticatedApiClient.post('/gigs', data);
       return response.data;
     },
     update: async (id, data) => {
-      const response = await apiClient.put(`/gigs/${id}`, data);
+      const response = await authenticatedApiClient.put(`/gigs/${id}`, data);
       return response.data;
     },
     delete: async (id) => {
-      const response = await apiClient.delete(`/gigs/${id}`);
+      const response = await authenticatedApiClient.delete(`/gigs/${id}`);
       return response.data;
     },
     addNote: async (id, note) => {
-      const response = await apiClient.post(`/gigs/${id}/notes`, note);
+      const response = await authenticatedApiClient.post(`/gigs/${id}/notes`, note);
       return response.data;
     }
   },
