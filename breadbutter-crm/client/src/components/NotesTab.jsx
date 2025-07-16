@@ -8,6 +8,8 @@ const NotesTab = () => {
   const [clients, setClients] = useState([])
   const [talents, setTalents] = useState([])
   const [noteText, setNoteText] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     fetchData()
@@ -15,46 +17,61 @@ const NotesTab = () => {
 
   const fetchData = async () => {
     try {
+      setLoading(true)
+      setError(null)
+      
       const [gigsData, clientsData, talentsData] = await Promise.all([
         api.gigs.getAll(),
         api.clients.getAll(),
         api.talents.getAll()
       ])
-      setGigs(gigsData)
-      setClients(clientsData)
-      setTalents(talentsData)
+      
+      console.log('Fetched data:', { gigsData, clientsData, talentsData })
+      
+      setGigs(gigsData || [])
+      setClients(clientsData || [])
+      setTalents(talentsData || [])
       
       // Flatten all notes from all gigs
       const notes = []
-      gigsData.forEach(gig => {
-        if (gig.updates && gig.updates.length > 0) {
-          gig.updates.forEach(update => {
-            notes.push({
-              ...update,
-              gigId: gig.id,
-              gigTitle: gig.title,
-              clientId: gig.clientId,
-              talentId: gig.talentId
+      if (gigsData && Array.isArray(gigsData)) {
+        gigsData.forEach(gig => {
+          if (gig && gig.updates && Array.isArray(gig.updates) && gig.updates.length > 0) {
+            gig.updates.forEach(update => {
+              if (update && update.note) {
+                notes.push({
+                  ...update,
+                  gigId: gig._id,
+                  gigTitle: gig.title,
+                  clientId: gig.clientId,
+                  talentId: gig.talentId
+                })
+              }
             })
-          })
-        }
-      })
+          }
+        })
+      }
       
       // Sort notes by date (newest first)
       notes.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
       setAllNotes(notes)
+      
+      console.log('Processed notes:', notes)
     } catch (error) {
-      alert('Error fetching data')
+      console.error('Error fetching data:', error)
+      setError(error.message || 'Error fetching data')
+    } finally {
+      setLoading(false)
     }
   }
 
   const getClientName = (clientId) => {
-    const client = clients.find(c => c.id === clientId)
+    const client = clients.find(c => c._id === clientId)
     return client ? client.name : 'Unknown Client'
   }
 
   const getTalentName = (talentId) => {
-    const talent = talents.find(t => t.id === talentId)
+    const talent = talents.find(t => t._id === talentId)
     return talent ? talent.name : 'Unknown Talent'
   }
 
@@ -67,83 +84,95 @@ const NotesTab = () => {
     })
   }
 
+  // Handle loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Notes</h2>
+        </div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            <p className="text-sm">Loading notes...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Handle error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Notes</h2>
+        </div>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+          <div className="text-center py-12 text-red-500 dark:text-red-400">
+            <p className="text-sm">Error loading notes: {error}</p>
+            <button 
+              onClick={fetchData}
+              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">All Notes</h2>
-        <div className="text-sm text-gray-500">
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">All Notes</h2>
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           {allNotes.length} notes across {gigs.length} projects
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
         {allNotes.length > 0 ? (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {allNotes.map((note, index) => (
-              <div key={index} className="p-6 hover:bg-gray-50">
+              <div key={`${note.gigId}-${index}`} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700">
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex-1">
-                    <h3 className="text-lg font-medium text-gray-900 mb-1">
-                      {note.gigTitle}
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+                      {note.gigTitle || 'Untitled Project'}
                     </h3>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500 mb-3">
+                    <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
                       <span>Client: {getClientName(note.clientId)}</span>
                       <span>•</span>
                       <span>Talent: {getTalentName(note.talentId)}</span>
                       <span>•</span>
-                      <span>By: {note.created_by}</span>
+                      <span>By: {note.created_by || 'Unknown'}</span>
                       <span>•</span>
                       <span>{formatDate(note.timestamp)}</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-800">{note.note}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <p className="text-gray-800 dark:text-gray-200">{note.note}</p>
                 </div>
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-gray-500">
-            <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-lg font-medium mb-2">No notes yet</h3>
-            <p className="text-sm">
-              Notes will appear here when you add them to projects. 
-              Go to the Projects tab to add your first note!
-            </p>
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+            <p className="text-sm">No notes found. Add notes to your projects!</p>
           </div>
         )}
       </div>
 
-      {/* Task Extraction Section */}
-      <div className="bg-white border border-gray-200 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          🔍 Extract Tasks from Notes
-        </h3>
+      {/* Task Extractor Section */}
+      <div className="space-y-6">
         <TaskExtractor 
           noteText={noteText}
           onNoteChange={setNoteText}
-          onTasksExtracted={(tasks) => {
-            console.log('Tasks extracted:', tasks)
-            // You can add logic here to save tasks to a specific project
-          }}
         />
       </div>
-
-      {allNotes.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <div className="text-blue-600 mr-2">💡</div>
-            <div>
-              <h4 className="font-medium text-blue-900">Tip</h4>
-              <p className="text-sm text-blue-700">
-                Use the Projects tab to add notes to specific projects. All notes will be consolidated here for easy reference.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

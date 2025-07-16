@@ -37,6 +37,7 @@ const GigsTab = () => {
       setClients(clientsData)
       setTalents(talentsData)
     } catch (error) {
+      console.error('Error fetching data:', error)
       alert('Error fetching data')
     }
   }
@@ -46,12 +47,13 @@ const GigsTab = () => {
     try {
       const gigData = {
         ...formData,
-        clientId: parseInt(formData.clientId),
-        talentId: parseInt(formData.talentId)
+        // Remove parseInt - keep as ObjectId strings
+        clientId: formData.clientId,
+        talentId: formData.talentId
       }
       
       if (editingGig) {
-        await api.gigs.update(editingGig.id, gigData)
+        await api.gigs.update(editingGig._id, gigData)
       } else {
         await api.gigs.create(gigData)
       }
@@ -60,6 +62,7 @@ const GigsTab = () => {
       setEditingGig(null)
       fetchData()
     } catch (error) {
+      console.error('Error saving gig:', error)
       alert('Error saving gig')
     }
   }
@@ -81,6 +84,7 @@ const GigsTab = () => {
         await api.gigs.delete(id)
         fetchData()
       } catch (error) {
+        console.error('Error deleting gig:', error)
         alert('Error deleting gig')
       }
     }
@@ -95,21 +99,23 @@ const GigsTab = () => {
   const handleAddNote = async (e) => {
     e.preventDefault()
     try {
-      await api.gigs.addNote(showingNotes.id, noteData)
+      await api.gigs.addNote(showingNotes._id, noteData)
       setNoteData({ note: '', type: 'text', created_by: '' })
+      setShowingNotes(null) // Close the modal after adding note
       fetchData()
     } catch (error) {
+      console.error('Error adding note:', error)
       alert('Error adding note')
     }
   }
 
   const getClientName = (clientId) => {
-    const client = clients.find(c => c.id === clientId)
+    const client = clients.find(c => c._id === clientId)
     return client ? client.name : 'Unknown Client'
   }
 
   const getTalentName = (talentId) => {
-    const talent = talents.find(t => t.id === talentId)
+    const talent = talents.find(t => t._id === talentId)
     return talent ? talent.name : 'Unknown Talent'
   }
 
@@ -118,7 +124,7 @@ const GigsTab = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-xl font-semibold text-gray-900">Projects</h2>
+        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Projects</h2>
         <button
           onClick={() => setIsAddingGig(true)}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
@@ -128,67 +134,67 @@ const GigsTab = () => {
       </div>
 
       {isAddingGig && (
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-6 text-gray-900">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+          <h3 className="text-lg font-medium mb-6 text-gray-900 dark:text-white">
             {editingGig ? 'Edit Project' : 'Add New Project'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Title
               </label>
               <input
                 type="text"
                 value={formData.title}
                 onChange={(e) => setFormData({...formData, title: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Client
               </label>
               <select
                 value={formData.clientId}
                 onChange={(e) => setFormData({...formData, clientId: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
                 <option value="">Select a client</option>
                 {clients.map(client => (
-                  <option key={client.id} value={client.id}>
+                  <option key={client._id} value={client._id}>
                     {client.name}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Talent
               </label>
               <select
                 value={formData.talentId}
                 onChange={(e) => setFormData({...formData, talentId: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
                 <option value="">Select a talent</option>
                 {talents.map(talent => (
-                  <option key={talent.id} value={talent.id}>
+                  <option key={talent._id} value={talent._id}>
                     {talent.name}
                   </option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Status
               </label>
               <select
                 value={formData.status}
                 onChange={(e) => setFormData({...formData, status: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               >
                 {statusOptions.map(status => (
@@ -208,7 +214,7 @@ const GigsTab = () => {
               <button
                 type="button"
                 onClick={handleCancel}
-                className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
               >
                 Cancel
               </button>
@@ -217,37 +223,37 @@ const GigsTab = () => {
         </div>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Title
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Client
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Talent
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Status
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {gigs.map(gig => (
-              <tr key={gig.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+              <tr key={gig._id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                   {gig.title}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                   {getClientName(gig.clientId)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-300">
                   {getTalentName(gig.talentId)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -273,7 +279,7 @@ const GigsTab = () => {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(gig.id)}
+                    onClick={() => handleDelete(gig._id)}
                     className="text-red-600 hover:text-red-800 font-medium"
                   >
                     Delete
@@ -284,7 +290,7 @@ const GigsTab = () => {
           </tbody>
         </table>
         {gigs.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
+          <div className="text-center py-12 text-gray-500 dark:text-gray-400">
             <p className="text-sm">No projects found. Add your first project!</p>
           </div>
         )}
@@ -300,7 +306,7 @@ const GigsTab = () => {
         <div className="space-y-6">
           <IntegrationsPanel 
             gigData={{
-              id: gigs[0].id,
+              id: gigs[0]._id,
               title: gigs[0].title,
               status: gigs[0].status,
               clientName: getClientName(gigs[0].clientId),
@@ -312,14 +318,14 @@ const GigsTab = () => {
 
       {showingNotes && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full m-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Notes for: {showingNotes.title}
               </h3>
               <button
                 onClick={() => setShowingNotes(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 text-xl"
               >
                 ✕
               </button>
@@ -329,50 +335,59 @@ const GigsTab = () => {
               <div className="space-y-4 mb-6">
                 {showingNotes.updates && showingNotes.updates.length > 0 ? (
                   showingNotes.updates.map((update, index) => (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                      <p className="text-sm text-gray-800">{update.note}</p>
-                      <div className="flex justify-between mt-2 text-xs text-gray-500">
+                    <div key={index} className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                      <p className="text-sm text-gray-800 dark:text-gray-200">{update.note}</p>
+                      <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
                         <span>By: {update.created_by}</span>
-                        <span>{update.timestamp}</span>
+                        <span>{new Date(update.timestamp).toLocaleDateString()}</span>
                       </div>
                     </div>
                   ))
                 ) : (
-                  <p className="text-gray-500 text-sm">No notes yet.</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">No notes yet.</p>
                 )}
               </div>
 
               <form onSubmit={handleAddNote} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Add Note
                   </label>
                   <textarea
                     value={noteData.note}
                     onChange={(e) => setNoteData({...noteData, note: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     rows="3"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Your Name
                   </label>
                   <input
                     type="text"
                     value={noteData.created_by}
                     onChange={(e) => setNoteData({...noteData, created_by: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
                 </div>
-                <button
-                  type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  Add Note
-                </button>
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="submit"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                  >
+                    Add Note
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowingNotes(null)}
+                    className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-sm font-medium"
+                  >
+                    Close
+                  </button>
+                </div>
               </form>
             </div>
           </div>
