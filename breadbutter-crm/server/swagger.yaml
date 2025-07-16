@@ -1,0 +1,1313 @@
+openapi: 3.0.3
+info:
+  title: BreadButter CRM API
+  description: |
+    A comprehensive Creative Operations Hub API for managing clients, talents, projects (gigs), and integrations.
+    
+    ## Authentication
+    Most endpoints require JWT authentication. Include the token in the Authorization header:
+    ```
+    Authorization: Bearer <your_jwt_token>
+    ```
+    
+    ## Features
+    - User authentication and authorization
+    - Client management (CRUD operations)
+    - Talent management (CRUD operations)
+    - Project/Gig management with notes
+    - AI-powered text summarization and task extraction
+    - External integrations (Slack, Notion, WhatsApp, Webhook)
+    
+  version: 1.0.0
+  contact:
+    name: BreadButter CRM Support
+    email: support@breadbutter.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000
+    description: Development server
+  - url: https://api.breadbutter.com
+    description: Production server
+
+paths:
+  # Authentication Endpoints
+  /api/auth/signup:
+    post:
+      tags:
+        - Authentication
+      summary: Create new user account
+      description: Register a new user with username, email, and password
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+            example:
+              username: john_doe
+              email: john@example.com
+              password: securepassword123
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: User created successfully
+        '400':
+          description: User already exists or validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: User already exists
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /api/auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and receive JWT token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            example:
+              email: john@example.com
+              password: securepassword123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                user:
+                  id: 64a7b8c9d1e2f3a4b5c6d7e8
+                  username: john_doe
+                  email: john@example.com
+        '400':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                message: Invalid password
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # Client Endpoints
+  /api/clients:
+    get:
+      tags:
+        - Clients
+      summary: Get all clients
+      description: Retrieve all clients for the authenticated user
+      operationId: getAllClients
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Client'
+              example:
+                - _id: 64a7b8c9d1e2f3a4b5c6d7e8
+                  name: Acme Corporation
+                  contact: contact@acme.com
+                  industry: Technology
+                  userId: 64a7b8c9d1e2f3a4b5c6d7e9
+                  createdAt: 2023-07-07T10:30:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Clients
+      summary: Create new client
+      description: Create a new client for the authenticated user
+      operationId: createClient
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+            example:
+              name: Acme Corporation
+              contact: contact@acme.com
+              industry: Technology
+      responses:
+        '201':
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+              example:
+                _id: 64a7b8c9d1e2f3a4b5c6d7e8
+                name: Acme Corporation
+                contact: contact@acme.com
+                industry: Technology
+                userId: 64a7b8c9d1e2f3a4b5c6d7e9
+                createdAt: 2023-07-07T10:30:00Z
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/clients/{id}:
+    put:
+      tags:
+        - Clients
+      summary: Update client
+      description: Update an existing client
+      operationId: updateClient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Client ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientRequest'
+            example:
+              name: Acme Corporation Updated
+              contact: newcontact@acme.com
+              industry: Technology
+      responses:
+        '200':
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Clients
+      summary: Delete client
+      description: Delete an existing client
+      operationId: deleteClient
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Client ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: Client deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: Client deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Talent Endpoints
+  /api/talents:
+    get:
+      tags:
+        - Talents
+      summary: Get all talents
+      description: Retrieve all talents for the authenticated user
+      operationId: getAllTalents
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of talents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Talent'
+              example:
+                - _id: 64a7b8c9d1e2f3a4b5c6d7e8
+                  name: John Photographer
+                  skills: ["Photography", "Video Editing", "Drone Operation"]
+                  city: Mumbai
+                  userId: 64a7b8c9d1e2f3a4b5c6d7e9
+                  createdAt: 2023-07-07T10:30:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Talents
+      summary: Create new talent
+      description: Create a new talent for the authenticated user
+      operationId: createTalent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalentRequest'
+            example:
+              name: John Photographer
+              skills: ["Photography", "Video Editing", "Drone Operation"]
+              city: Mumbai
+      responses:
+        '201':
+          description: Talent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Talent'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/talents/{id}:
+    put:
+      tags:
+        - Talents
+      summary: Update talent
+      description: Update an existing talent
+      operationId: updateTalent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Talent ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TalentRequest'
+            example:
+              name: John Photographer Updated
+              skills: ["Photography", "Video Editing", "Drone Operation", "Color Grading"]
+              city: Mumbai
+      responses:
+        '200':
+          description: Talent updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Talent'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Talents
+      summary: Delete talent
+      description: Delete an existing talent
+      operationId: deleteTalent
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Talent ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: Talent deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: Talent deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Gig/Project Endpoints
+  /api/gigs:
+    get:
+      tags:
+        - Projects/Gigs
+      summary: Get all gigs
+      description: Retrieve all gigs/projects for the authenticated user
+      operationId: getAllGigs
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of gigs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Gig'
+              example:
+                - _id: 64a7b8c9d1e2f3a4b5c6d7e8
+                  title: Fashion Shoot - Summer Collection
+                  clientId: 64a7b8c9d1e2f3a4b5c6d7e9
+                  talentId: 64a7b8c9d1e2f3a4b5c6d7ea
+                  status: In Progress
+                  updates: []
+                  userId: 64a7b8c9d1e2f3a4b5c6d7eb
+                  createdAt: 2023-07-07T10:30:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    post:
+      tags:
+        - Projects/Gigs
+      summary: Create new gig
+      description: Create a new gig/project for the authenticated user
+      operationId: createGig
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GigRequest'
+            example:
+              title: Fashion Shoot - Summer Collection
+              clientId: 64a7b8c9d1e2f3a4b5c6d7e9
+              talentId: 64a7b8c9d1e2f3a4b5c6d7ea
+              status: In Progress
+      responses:
+        '201':
+          description: Gig created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gig'
+        '400':
+          $ref: '#/components/responses/BadRequestError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/gigs/{id}:
+    put:
+      tags:
+        - Projects/Gigs
+      summary: Update gig
+      description: Update an existing gig/project
+      operationId: updateGig
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Gig ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GigRequest'
+            example:
+              title: Fashion Shoot - Summer Collection Updated
+              clientId: 64a7b8c9d1e2f3a4b5c6d7e9
+              talentId: 64a7b8c9d1e2f3a4b5c6d7ea
+              status: Delivered
+      responses:
+        '200':
+          description: Gig updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gig'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+    delete:
+      tags:
+        - Projects/Gigs
+      summary: Delete gig
+      description: Delete an existing gig/project
+      operationId: deleteGig
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Gig ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: Gig deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: Gig deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/gigs/{id}/notes:
+    post:
+      tags:
+        - Projects/Gigs
+      summary: Add note to gig
+      description: Add a note/update to an existing gig
+      operationId: addNoteToGig
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Gig ID
+          schema:
+            type: string
+            example: 64a7b8c9d1e2f3a4b5c6d7e8
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NoteRequest'
+            example:
+              note: Client approved the final edits. Ready for delivery.
+              type: text
+              created_by: John Doe
+      responses:
+        '200':
+          description: Note added successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Gig'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # AI Endpoints
+  /api/ai/summarize:
+    post:
+      tags:
+        - AI Features
+      summary: Summarize text
+      description: Generate a summary of the provided text with detected tags
+      operationId: aiSummarize
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SummarizeRequest'
+            example:
+              text: "We had a great meeting with the client today. They want to finalize the budget by Friday and need to book the location for the shoot. The creative direction is clear and we must confirm talent availability soon."
+      responses:
+        '200':
+          description: Summary generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummarizeResponse'
+              example:
+                summary: "We had a great meeting with the client today. They want to finalize the budget by Friday and need to book the location for the shoot. The creative direction is clear and we must confirm talent availability soon."
+                tags: ["budget", "creative direction", "location", "talent"]
+        '400':
+          description: Text is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Text is required for summarization
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/ai/extract-tasks:
+    post:
+      tags:
+        - AI Features
+      summary: Extract tasks from notes
+      description: Extract actionable tasks from meeting notes or text
+      operationId: aiExtractTasks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExtractTasksRequest'
+            example:
+              note: "We need to finalize the budget by Friday. Must book the location for the shoot. Should confirm talent availability. Todo: arrange equipment rental."
+      responses:
+        '200':
+          description: Tasks extracted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractTasksResponse'
+              example:
+                tasks:
+                  - "Finalize the budget by Friday"
+                  - "Book the location for the shoot"
+                  - "Confirm talent availability"
+                  - "Arrange equipment rental"
+        '400':
+          description: Note is required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: Note is required for task extraction
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  # Integration Endpoints
+  /api/integrations/slack:
+    post:
+      tags:
+        - Integrations
+      summary: Send Slack notification
+      description: Send a notification to Slack channel
+      operationId: slackNotification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SlackRequest'
+            example:
+              message: "New gig has been created: Fashion Shoot - Summer Collection"
+              gigId: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: Slack notification sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationResponse'
+              example:
+                success: true
+                message: "Slack notification sent to #general!"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/integrations/notion:
+    post:
+      tags:
+        - Integrations
+      summary: Create Notion page
+      description: Create a documentation page in Notion
+      operationId: notionPage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotionRequest'
+            example:
+              title: "Fashion Shoot - Summer Collection"
+              client: "Acme Corporation"
+              talent: "John Photographer"
+              status: "In Progress"
+              gigId: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: Notion page created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotionResponse'
+              example:
+                success: true
+                message: "Notion page created successfully!"
+                url: "https://notion.so/breadbutter-crm/gig-64a7b8c9d1e2f3a4b5c6d7e8-1688720400000"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/integrations/whatsapp:
+    post:
+      tags:
+        - Integrations
+      summary: Send WhatsApp message
+      description: Send a WhatsApp message
+      operationId: whatsappMessage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WhatsAppRequest'
+            example:
+              phoneNumber: "+91 9876543210"
+              message: "Your project 'Fashion Shoot - Summer Collection' has been updated!"
+              gigId: 64a7b8c9d1e2f3a4b5c6d7e8
+      responses:
+        '200':
+          description: WhatsApp message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationResponse'
+              example:
+                success: true
+                message: "WhatsApp message sent to +91 9876543210!"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/integrations/webhook:
+    post:
+      tags:
+        - Integrations
+      summary: Trigger webhook
+      description: Trigger an external webhook
+      operationId: triggerWebhook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+            example:
+              event: "gig.created"
+              gigId: 64a7b8c9d1e2f3a4b5c6d7e8
+              timestamp: "2023-07-07T10:30:00Z"
+              gigData:
+                title: "Fashion Shoot - Summer Collection"
+                status: "In Progress"
+                client: "Acme Corporation"
+                talent: "John Photographer"
+      responses:
+        '200':
+          description: Webhook triggered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationResponse'
+              example:
+                success: true
+                message: "Webhook triggered successfully!"
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token for authentication. Include 'Bearer ' prefix.
+
+  schemas:
+    # Authentication Schemas
+    SignupRequest:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          description: Unique username
+          example: john_doe
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: john@example.com
+        password:
+          type: string
+          minLength: 6
+          description: User password
+          example: securepassword123
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: john@example.com
+        password:
+          type: string
+          description: User password
+          example: securepassword123
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT authentication token
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/User'
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+        username:
+          type: string
+          description: Username
+          example: john_doe
+        email:
+          type: string
+          format: email
+          description: User email
+          example: john@example.com
+
+    # Client Schemas
+    ClientRequest:
+      type: object
+      required:
+        - name
+        - contact
+        - industry
+      properties:
+        name:
+          type: string
+          description: Client name
+          example: Acme Corporation
+        contact:
+          type: string
+          format: email
+          description: Client contact email
+          example: contact@acme.com
+        industry:
+          type: string
+          description: Client industry
+          example: Technology
+
+    Client:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Client ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+        name:
+          type: string
+          description: Client name
+          example: Acme Corporation
+        contact:
+          type: string
+          format: email
+          description: Client contact email
+          example: contact@acme.com
+        industry:
+          type: string
+          description: Client industry
+          example: Technology
+        userId:
+          type: string
+          description: Owner user ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e9
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: 2023-07-07T10:30:00Z
+
+    # Talent Schemas
+    TalentRequest:
+      type: object
+      required:
+        - name
+        - skills
+        - city
+      properties:
+        name:
+          type: string
+          description: Talent name
+          example: John Photographer
+        skills:
+          type: array
+          items:
+            type: string
+          description: List of skills
+          example: ["Photography", "Video Editing", "Drone Operation"]
+        city:
+          type: string
+          description: Talent city
+          example: Mumbai
+
+    Talent:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Talent ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+        name:
+          type: string
+          description: Talent name
+          example: John Photographer
+        skills:
+          type: array
+          items:
+            type: string
+          description: List of skills
+          example: ["Photography", "Video Editing", "Drone Operation"]
+        city:
+          type: string
+          description: Talent city
+          example: Mumbai
+        userId:
+          type: string
+          description: Owner user ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e9
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: 2023-07-07T10:30:00Z
+
+    # Gig Schemas
+    GigRequest:
+      type: object
+      required:
+        - title
+        - clientId
+        - talentId
+        - status
+      properties:
+        title:
+          type: string
+          description: Gig title
+          example: Fashion Shoot - Summer Collection
+        clientId:
+          type: string
+          description: Client ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e9
+        talentId:
+          type: string
+          description: Talent ID
+          example: 64a7b8c9d1e2f3a4b5c6d7ea
+        status:
+          type: string
+          enum: [Pending, In Progress, Delivered, Cancelled]
+          description: Gig status
+          example: In Progress
+
+    NoteRequest:
+      type: object
+      required:
+        - note
+        - created_by
+      properties:
+        note:
+          type: string
+          description: Note content
+          example: Client approved the final edits. Ready for delivery.
+        type:
+          type: string
+          default: text
+          description: Note type
+          example: text
+        created_by:
+          type: string
+          description: Note author
+          example: John Doe
+
+    Note:
+      type: object
+      properties:
+        note:
+          type: string
+          description: Note content
+          example: Client approved the final edits. Ready for delivery.
+        type:
+          type: string
+          description: Note type
+          example: text
+        created_by:
+          type: string
+          description: Note author
+          example: John Doe
+        timestamp:
+          type: string
+          format: date-time
+          description: Note timestamp
+          example: 2023-07-07T10:30:00Z
+
+    Gig:
+      type: object
+      properties:
+        _id:
+          type: string
+          description: Gig ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+        title:
+          type: string
+          description: Gig title
+          example: Fashion Shoot - Summer Collection
+        clientId:
+          type: string
+          description: Client ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e9
+        talentId:
+          type: string
+          description: Talent ID
+          example: 64a7b8c9d1e2f3a4b5c6d7ea
+        status:
+          type: string
+          enum: [Pending, In Progress, Delivered, Cancelled]
+          description: Gig status
+          example: In Progress
+        updates:
+          type: array
+          items:
+            $ref: '#/components/schemas/Note'
+          description: List of notes/updates
+        userId:
+          type: string
+          description: Owner user ID
+          example: 64a7b8c9d1e2f3a4b5c6d7eb
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: 2023-07-07T10:30:00Z
+
+    # AI Schemas
+    SummarizeRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          description: Text to summarize
+          example: "We had a great meeting with the client today. They want to finalize the budget by Friday and need to book the location for the shoot."
+
+    SummarizeResponse:
+      type: object
+      properties:
+        summary:
+          type: string
+          description: Generated summary
+          example: "We had a great meeting with the client today. They want to finalize the budget by Friday and need to book the location for the shoot."
+        tags:
+          type: array
+          items:
+            type: string
+          description: Detected tags
+          example: ["budget", "location", "client communication"]
+
+    ExtractTasksRequest:
+      type: object
+      required:
+        - note
+      properties:
+        note:
+          type: string
+          description: Note to extract tasks from
+          example: "We need to finalize the budget by Friday. Must book the location for the shoot. Should confirm talent availability."
+
+    ExtractTasksResponse:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            type: string
+          description: Extracted tasks
+          example: ["Finalize the budget by Friday", "Book the location for the shoot", "Confirm talent availability"]
+
+    # Integration Schemas
+    SlackRequest:
+      type: object
+      required:
+        - message
+        - gigId
+      properties:
+        message:
+          type: string
+          description: Message to send
+          example: "New gig has been created: Fashion Shoot - Summer Collection"
+        gigId:
+          type: string
+          description: Related gig ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+
+    NotionRequest:
+      type: object
+      required:
+        - title
+        - client
+        - talent
+        - status
+        - gigId
+      properties:
+        title:
+          type: string
+          description: Page title
+          example: "Fashion Shoot - Summer Collection"
+        client:
+          type: string
+          description: Client name
+          example: "Acme Corporation"
+        talent:
+          type: string
+          description: Talent name
+          example: "John Photographer"
+        status:
+          type: string
+          description: Gig status
+          example: "In Progress"
+        gigId:
+          type: string
+          description: Related gig ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+
+    NotionResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Success status
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Notion page created successfully!"
+        url:
+          type: string
+          description: Created page URL
+          example: "https://notion.so/breadbutter-crm/gig-64a7b8c9d1e2f3a4b5c6d7e8-1688720400000"
+
+    WhatsAppRequest:
+      type: object
+      required:
+        - phoneNumber
+        - message
+        - gigId
+      properties:
+        phoneNumber:
+          type: string
+          description: Phone number
+          example: "+91 9876543210"
+        message:
+          type: string
+          description: Message to send
+          example: "Your project 'Fashion Shoot - Summer Collection' has been updated!"
+        gigId:
+          type: string
+          description: Related gig ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+
+    WebhookRequest:
+      type: object
+      required:
+        - event
+        - gigId
+        - timestamp
+        - gigData
+      properties:
+        event:
+          type: string
+          description: Event type
+          example: "gig.created"
+        gigId:
+          type: string
+          description: Related gig ID
+          example: 64a7b8c9d1e2f3a4b5c6d7e8
+        timestamp:
+          type: string
+          format: date-time
+          description: Event timestamp
+          example: "2023-07-07T10:30:00Z"
+        gigData:
+          type: object
+          description: Gig data
+          example:
+            title: "Fashion Shoot - Summer Collection"
+            status: "In Progress"
+            client: "Acme Corporation"
+            talent: "John Photographer"
+
+    IntegrationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Success status
+          example: true
+        message:
+          type: string
+          description: Response message
+          example: "Operation completed successfully!"
+
+    # Common Response Schemas
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Response message
+          example: "Operation completed successfully"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message
+          example: "An error occurred"
+        error:
+          type: string
+          description: Error details
+          example: "Validation failed"
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Authentication required"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Resource not found"
+
+    BadRequestError:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Invalid request data"
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            message: "Internal server error"
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization
+  - name: Clients
+    description: Client management operations
+  - name: Talents
+    description: Talent management operations
+  - name: Projects/Gigs
+    description: Project and gig management operations
+  - name: AI Features
+    description: AI-powered text processing and task extraction
+  - name: Integrations
+    description: External service integrations (Slack, Notion, WhatsApp, Webhook) 
